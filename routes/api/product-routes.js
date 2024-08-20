@@ -9,8 +9,27 @@ router.get('/', async (req, res) => {
   // be sure to include its associated Category and Tag data
   try{
     const productData = await Product.findAll();
+    const returnData = []
+    for (productBulk of productData){
+      const product = productBulk.dataValues
+      const catData = await Category.findByPk(product.category_id);
+      //find all the tags
+      const productTagData = await ProductTag.findAll({where: {product_id: product.id}});
+      const tags = [];
+      for (thing of productTagData){
+        const tag = await Tag.findAll({where: {id: thing.dataValues.tag_id}});
+        tags.push(tag[0].dataValues.tag_name);
+      }
+
+      //should be able to run the spread operator and make a json object to send back
+      const subReturn = {...(product), 
+        "categoryName": catData.category_name,
+        "tags": tags
+      };
+      returnData.push(subReturn);
+    }
     //check to see what exactly is returned
-    res.status(200).json(productData);
+    res.status(200).json(returnData);
   }
   catch(err) {
     res.status(500).json(err);
@@ -22,7 +41,6 @@ router.get('/:id', async (req, res) => {
   // find a single product by its `id`
   // be sure to include its associated Category and Tag data
   try{
-    console.log("Here");
     const productData = await Product.findByPk(req.params.id, 
       // {
       // include: [{model: Tag, as: "product_tags", where: {id: Product.product_id}}]
