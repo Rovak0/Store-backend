@@ -22,14 +22,36 @@ router.get('/:id', async (req, res) => {
   // find a single product by its `id`
   // be sure to include its associated Category and Tag data
   try{
+    console.log("Here");
     const productData = await Product.findByPk(req.params.id, 
-      // include: [{model: Category}]
+      // {
+      // include: [{model: Tag, as: "product_tags", where: {id: Product.product_id}}]
+      // include: [{ model: Tag, through: ProductTag, as: 'product_tags' }]
+      // }
     );
+    //couldn't make it work with a through table on its own, so I made it work manually
+    //there isn't a tag attached directly to product
+    //find the catagoy and the tag based off of id's given (either the product's or the cat's)
+    const catData = await Category.findByPk(productData.category_id);
+    //find all the tags
+    const productTagData = await ProductTag.findAll({where: {product_id: req.params.id}});
+    const tags = [];
+    for (thing of productTagData){
+      const tag = await Tag.findAll({where: {id: thing.dataValues.tag_id}});
+      tags.push(tag[0].dataValues.tag_name);
+    }
+
+    //should be able to run the spread operator and make a json object to send back
+    const returnObject = {...(productData.dataValues), 
+      "categoryName": catData.category_name,
+      "tags": tags
+    };
+    console.log(returnObject);
     //check to see what exactly is returned
-    res.status(200).json(productData);
+    res.status(200).json(returnObject);
   }
   catch(err) {
-    res.status(404).json(err);
+    res.status(500).json(err);
   }
 });
 
