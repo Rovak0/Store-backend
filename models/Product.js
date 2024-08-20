@@ -17,17 +17,24 @@ Product.init(
         primaryKey: true,
         autoIncrement: true
       },
-      name: {
+      product_name: {
         type: DataTypes.STRING,
         allowNull: false
       },
-      catId: {
+      price: {
+        type: DataTypes.FLOAT,
+        allowNull: false,
+      },
+      stock: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      category_id: {
         type: DataTypes.INTEGER,
         references: {
           model: 'category',
           key:'id'
         },
-        
       }
   },
   {
